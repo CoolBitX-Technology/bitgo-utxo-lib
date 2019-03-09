@@ -761,6 +761,74 @@ function canSign (input) {
     )
 }
 
+TransactionBuilder.prototype.getSignatureHash = function(vin, kpPubKey, redeemScript, hashType, witnessValue, witnessScript){
+  debug('Signing transaction: (input: %d, hashType: %d, witnessVal: %s, witnessScript: %j)', vin, hashType, witnessValue, witnessScript)
+  debug('Transaction Builder network: %j', this.network)
+  
+  if (!this.inputs[vin]) throw new Error('No input at index: ' + vin)
+  hashType = hashType || Transaction.SIGHASH_ALL
+
+  var input = this.inputs[vin]
+
+  // if redeemScript was previously provided, enforce consistency
+  if (input.redeemScript !== undefined &&
+      redeemScript &&
+      !input.redeemScript.equals(redeemScript)) {
+    throw new Error('Inconsistent redeemScript')
+  }
+
+  if (!canSign(input)) {
+    if (witnessValue !== undefined) {
+      if (input.value !== undefined && input.value !== witnessValue) throw new Error('Input didn\'t match witnessValue')
+      typeforce(types.Satoshi, witnessValue)
+      input.value = witnessValue
+    }
+
+    debug('Preparing input %d for signing', vin)
+
+    if (!canSign(input)) prepareInput(input, kpPubKey, redeemScript, witnessValue, witnessScript)
+    if (!canSign(input)) throw Error(input.prevOutType + ' not supported')
+  }
+
+  // ready to sign
+  var signatureHash
+  if (coins.isBitcoinGold(this.network)) {
+    signatureHash = this.tx.hashForGoldSignature(vin, input.signScript, witnessValue, hashType, input.witness)
+    debug('Calculated BTG sighash (%s)', signatureHash.toString('hex'))
+  } else if (coins.isBitcoinCash(this.network) || coins.isBitcoinSV(this.network)) {
+    signatureHash = this.tx.hashForCashSignature(vin, input.signScript, witnessValue, hashType)
+    debug('Calculated BCH sighash (%s)', signatureHash.toString('hex'))
+  } else if (coins.isZcash(this.network)) {
+    signatureHash = this.tx.hashForZcashSignature(vin, input.signScript, witnessValue, hashType)
+    debug('Calculated ZEC sighash (%s)', signatureHash.toString('hex'))
+  } else {
+    if (input.witness) {
+      signatureHash = this.tx.hashForWitnessV0(vin, input.signScript, witnessValue, hashType)
+      debug('Calculated witnessv0 sighash (%s)', signatureHash.toString('hex'))
+    } else {
+      signatureHash = this.tx.hashForSignature(vin, input.signScript, hashType)
+      debug('Calculated sighash (%s)', signatureHash.toString('hex'))
+    }
+  }
+
+  return signatureHash
+}
+
+TransactionBuilder.prototype.addSignature = function (vin, kpPubKey, signature) {
+  var input = this.inputs[vin];
+  var signed = input.pubKeys.some(function (pubKey, i) {
+    if (!kpPubKey.equals(pubKey)) return false
+    if (input.signatures[i]) throw new Error('Signature already exists')
+    if (kpPubKey.length !== 33 &&
+      input.signType === scriptTypes.P2WPKH) throw new Error('BIP143 rejects uncompressed public keys in P2WPKH or P2WSH')
+
+    if (!Buffer.isBuffer(signature)) signature = Buffer.from(signature, 'hex')
+    input.signatures[i] = signature
+    return true
+  })
+  if (!signed) throw new Error('Key pair cannot sign for this input')
+}
+
 TransactionBuilder.prototype.sign = function (vin, keyPair, redeemScript, hashType, witnessValue, witnessScript) {
   debug('Signing transaction: (input: %d, hashType: %d, witnessVal: %s, witnessScript: %j)', vin, hashType, witnessValue, witnessScript)
   debug('Transaction Builder network: %j', this.network)
