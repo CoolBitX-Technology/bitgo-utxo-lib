@@ -789,24 +789,16 @@ TransactionBuilder.prototype.getSignatureHash = function(vin, kpPubKey, redeemSc
     if (!canSign(input)) prepareInput(input, kpPubKey, redeemScript, witnessValue, witnessScript)
     if (!canSign(input)) throw Error(input.prevOutType + ' not supported')
   }
-
   // ready to sign
   var signatureHash
-  if (coins.isBitcoinGold(this.network)) {
-    signatureHash = this.tx.hashForGoldSignature(vin, input.signScript, witnessValue, hashType, input.witness)
-    debug('Calculated BTG sighash (%s)', signatureHash.toString('hex'))
-  } else if (coins.isBitcoinCash(this.network) || coins.isBitcoinSV(this.network)) {
-    signatureHash = this.tx.hashForCashSignature(vin, input.signScript, witnessValue, hashType)
+  if (coins.isBitcoinCash(this.network) || coins.isBitcoinSV(this.network)) {
+    signatureHash = this.tx.hashForCashSignature(vin, input.signScript, witnessValue, hashType, true)
     debug('Calculated BCH sighash (%s)', signatureHash.toString('hex'))
-  } else if (coins.isZcash(this.network)) {
-    signatureHash = this.tx.hashForZcashSignature(vin, input.signScript, witnessValue, hashType)
-    debug('Calculated ZEC sighash (%s)', signatureHash.toString('hex'))
-  } else {
+  } else { // BTC and LTC
     if (input.witness) {
-      signatureHash = this.tx.hashForWitnessV0(vin, input.signScript, witnessValue, hashType)
-      debug('Calculated witnessv0 sighash (%s)', signatureHash.toString('hex'))
+      signatureHash = this.tx.hashForWitnessV0(vin, input.signScript, witnessValue, hashType, true)
     } else {
-      signatureHash = this.tx.hashForSignature(vin, input.signScript, hashType)
+      signatureHash = this.tx.hashForSignature(vin, input.signScript, hashType, true)
       debug('Calculated sighash (%s)', signatureHash.toString('hex'))
     }
   }
