@@ -683,7 +683,10 @@ Transaction.prototype.hashForSignature = function (inIndex, prevOutScript, hashT
   txTmp.__toBuffer(buffer, 0, false)
 
   if(cws){
-    return buffer.toString('hex')  
+    return {
+      signatureHash: buffer.toString('hex'),
+      txouts: this.getOutputsHash(hashType, inIndex, false).toString('hex')
+    }
   }
   else{
     return bcrypto.hash256(buffer)
@@ -770,6 +773,7 @@ Transaction.prototype.getOutputsHash = function (hashType, inIndex, hashed=true)
     if (coins.isZcash(this.network)) {
       return this.getBlake2bHash(bufferWriter.getBuffer(), 'ZcashOutputsHash')
     }
+    console.log(`getOutputsHash: SIGHASH_ALL ${bufferWriter.getBuffer().toString('hex')}`)
     if(hashed){
       return bcrypto.hash256(bufferWriter.getBuffer())
     }else{
@@ -787,6 +791,7 @@ Transaction.prototype.getOutputsHash = function (hashType, inIndex, hashed=true)
     if (coins.isZcash(this.network)) {
       return this.getBlake2bHash(bufferWriter.getBuffer(), 'ZcashOutputsHash')
     }
+    console.log(`getOutputsHash: SIGHASH_SIGHASH_SINGLE ${bufferWriter.getBuffer().toString('hex')}`)
     if(hashed){
       return bcrypto.hash256(bufferWriter.getBuffer())
     }else{

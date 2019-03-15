@@ -1,6 +1,7 @@
 var Buffer = require('safe-buffer').Buffer
 var bech32 = require('bech32')
 var bs58check = require('bs58check')
+var cashaddress = require('cashaddress')
 var bscript = require('./script')
 var btemplates = require('./templates')
 var networks = require('./networks')
@@ -75,7 +76,9 @@ function toOutputScript (address, network) {
   try {
     decode = fromBase58Check(address)
   } catch (e) {}
-
+  try {
+    decode = cashaddress.decode('bitcoincash:'+address)
+  } catch (e) {console.log(`Not bch address: ${address}`)}
   if (decode) {
     if (decode.version === network.pubKeyHash) return btemplates.pubKeyHash.output.encode(decode.hash)
     if (decode.version === network.scriptHash) return btemplates.scriptHash.output.encode(decode.hash)

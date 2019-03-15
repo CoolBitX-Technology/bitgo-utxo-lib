@@ -789,7 +789,7 @@ TransactionBuilder.prototype.getSignatureHash = function(vin, kpPubKey, redeemSc
     if (!canSign(input)) prepareInput(input, kpPubKey, redeemScript, witnessValue, witnessScript)
     if (!canSign(input)) throw Error(input.prevOutType + ' not supported')
   }
-  // ready to sign
+  // return object: {signature, txouts}
   var signatureHash
   if (coins.isBitcoinCash(this.network) || coins.isBitcoinSV(this.network)) {
     signatureHash = this.tx.hashForCashSignature(vin, input.signScript, witnessValue, hashType, true)
