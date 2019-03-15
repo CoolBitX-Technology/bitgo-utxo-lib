@@ -75,13 +75,14 @@ function toOutputScript (address, network) {
   var decode
   try {
     decode = fromBase58Check(address)
-  } catch (e) {}
-  try {
-    decode = cashaddress.decode('bitcoincash:'+address)
-  } catch (e) {console.log(`Not bch address: ${address}`)}
+  } catch (e) {
+    try{
+      decode = cashaddress.decode('bitcoincash:'+address)
+    } catch (e) {}    
+  }
   if (decode) {
-    if (decode.version === network.pubKeyHash) return btemplates.pubKeyHash.output.encode(decode.hash)
-    if (decode.version === network.scriptHash) return btemplates.scriptHash.output.encode(decode.hash)
+    if (decode.version === "pubkeyhash" || decode.version === network.pubKeyHash) return btemplates.pubKeyHash.output.encode(decode.hash)
+    if (decode.version === "scripthash" || decode.version === network.scriptHash) return btemplates.scriptHash.output.encode(decode.hash)
   } else {
     try {
       decode = fromBech32(address)
@@ -96,7 +97,7 @@ function toOutputScript (address, network) {
     }
   }
 
-  throw new Error(address + ' has no matching Script')
+  throw new Error(address + ' has no matching Script~~AA~')
 }
 
 module.exports = {
