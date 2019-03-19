@@ -684,8 +684,8 @@ Transaction.prototype.hashForSignature = function (inIndex, prevOutScript, hashT
 
   if(cws){
     return {
-      signatureHash: buffer.toString('hex'),
-      txouts: this.getOutputsHash(hashType, inIndex, false).toString('hex')
+      rawTx: buffer.toString('hex'),
+      outputScriptHex: this.getOutputsHash(hashType, inIndex, false).toString('hex')
     }
   }
   else{
@@ -910,8 +910,8 @@ Transaction.prototype.hashForWitnessV0 = function (inIndex, prevOutScript, value
   bufferWriter.writeSlice(_hashOutputs)
   if(cws){
     return {
-      signatureHash: bufferWriter.getBuffer().toString('hex'), 
-      txouts: _hashOutputs.toString('hex')
+      rawTx: bufferWriter.getBuffer().toString('hex'), 
+      outputScriptHex: _hashOutputs.toString('hex')
     }
   }else{
     return bcrypto.hash256(bufferWriter.getBuffer())
