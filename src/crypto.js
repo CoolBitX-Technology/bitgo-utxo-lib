@@ -1,5 +1,6 @@
 var createHash = require('create-hash')
 var crypto = require('crypto')
+// import crypto from 'crypto'
 
 function ripemd160 (buffer) {
   var hash = 'rmd160'

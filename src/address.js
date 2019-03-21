@@ -70,6 +70,7 @@ function fromOutputScript (outputScript, network) {
 }
 
 function toOutputScript (address, network) {
+  console.log('TTTTTT')
   network = network || networks.bitcoin
   var decode
   try {
@@ -104,9 +105,9 @@ function toOutputScript (address, network) {
     //     if (decode.data.length === 32) return btemplates.witnessScriptHash.output.encode(decode.data)
     //   }
     // }
-  }
+  // }
 
-  throw new Error(address + ' has no matching Script~~AA~')
+  throw new Error(address + ' has no matching Script')
 }
 
 module.exports = {
