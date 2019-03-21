@@ -71,30 +71,39 @@ function fromOutputScript (outputScript, network) {
 
 function toOutputScript (address, network) {
   network = network || networks.bitcoin
-
   var decode
   try {
     decode = fromBase58Check(address)
   } catch (e) {
     try{
       decode = cashaddress.decode('bitcoincash:'+address)
-    } catch (e) {}    
+    } catch (e) {
+      try {
+        decode = fromBech32(address)
+      } catch (e) {}  
+    }    
   }
   if (decode) {
     if (decode.version === "pubkeyhash" || decode.version === network.pubKeyHash) return btemplates.pubKeyHash.output.encode(decode.hash)
     if (decode.version === "scripthash" || decode.version === network.scriptHash) return btemplates.scriptHash.output.encode(decode.hash)
-  } else {
-    try {
-      decode = fromBech32(address)
-    } catch (e) {}
 
-    if (decode) {
-      if (decode.prefix !== network.bech32) throw new Error(address + ' has an invalid prefix')
+    if (decode.prefix !== network.bech32) throw new Error(address + ' has an invalid prefix')
       if (decode.version === 0) {
         if (decode.data.length === 20) return btemplates.witnessPubKeyHash.output.encode(decode.data)
         if (decode.data.length === 32) return btemplates.witnessScriptHash.output.encode(decode.data)
       }
-    }
+  }
+  // else {
+  //   try {
+  //     decode = fromBech32(address)
+  //   } catch (e) {}
+    // if (decode) {
+    //   if (decode.prefix !== network.bech32) throw new Error(address + ' has an invalid prefix')
+    //   if (decode.version === 0) {
+    //     if (decode.data.length === 20) return btemplates.witnessPubKeyHash.output.encode(decode.data)
+    //     if (decode.data.length === 32) return btemplates.witnessScriptHash.output.encode(decode.data)
+    //   }
+    // }
   }
 
   throw new Error(address + ' has no matching Script~~AA~')
