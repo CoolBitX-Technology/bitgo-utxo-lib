@@ -70,7 +70,6 @@ function fromOutputScript (outputScript, network) {
 }
 
 function toOutputScript (address, network) {
-  console.log('TTTTTT')
   network = network || networks.bitcoin
   var decode
   try {
@@ -94,18 +93,6 @@ function toOutputScript (address, network) {
         if (decode.data.length === 32) return btemplates.witnessScriptHash.output.encode(decode.data)
       }
   }
-  // else {
-  //   try {
-  //     decode = fromBech32(address)
-  //   } catch (e) {}
-    // if (decode) {
-    //   if (decode.prefix !== network.bech32) throw new Error(address + ' has an invalid prefix')
-    //   if (decode.version === 0) {
-    //     if (decode.data.length === 20) return btemplates.witnessPubKeyHash.output.encode(decode.data)
-    //     if (decode.data.length === 32) return btemplates.witnessScriptHash.output.encode(decode.data)
-    //   }
-    // }
-  // }
 
   throw new Error(address + ' has no matching Script')
 }
